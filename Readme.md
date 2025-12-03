@@ -1,6 +1,6 @@
 # Projeto Final - DevOps e Cloud Computing
 
-![Workflow Status](https://img.shields.io/github/actions/workflow/status/SEU-USUARIO/NOME-REPO/ci-cd-pipeline.yml?style=for-the-badge)
+![Workflow Status](https://img.shields.io/github/actions/workflow/status/gustavohertz/AT-Pipelines-de-CI-CD-e-DevOps/ci-cd-pipeline.yml?style=for-the-badge)
 
 Este repositório consolida os conhecimentos de Docker, Kubernetes e GitHub Actions.
 

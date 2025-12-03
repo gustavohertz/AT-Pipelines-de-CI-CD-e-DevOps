@@ -58,11 +58,8 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     environment:
-      name: Production # Requisito: Ambiente com aprovação manual
+      name: Production
       url: https://seusite.com
-
-    vars:
-      PROD_DOMAIN: "app.producao.com" # Requisito: Variável de ambiente (Contexto vars)
 
     steps:
       - name: Download do Artefato
@@ -72,12 +69,13 @@ jobs:
 
       - name: Verificação de Variáveis e Segredos
         env:
-          API_KEY: ${{ secrets.API_KEY }} # Requisito: Uso de secret
+          API_KEY: ${{ secrets.API_KEY }}
         run: |
           if [ -z "$API_KEY" ]; then
             echo "::error::API_KEY não configurada!"
             exit 1
           fi
+          # AQUI EMBAIXO O CÓDIGO CONTINUA USANDO A VARIÁVEL CORRETAMENTE:
           echo "Deploying to domain: ${{ vars.PROD_DOMAIN }}"
 
       - name: Simulação de Deploy no K8s
