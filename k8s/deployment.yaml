@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: projeto-at-deployment
+spec:
+  replicas: 2 # Requisito: Pelo menos 2 réplicas
+  selector:
+    matchLabels:
+      app: projeto-at
+  template:
+    metadata:
+      labels:
+        app: projeto-at
+    spec:
+      containers:
+        - name: projeto-at-container
+          image: gustavohertz-dockerhub/projeto-at:v1
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: projeto-at-service
+spec:
+  selector:
+    app: projeto-at
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer

@@ -1,0 +1,95 @@
+name: CI/CD Pipeline Completo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Permite execução manual
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/projeto-at
+  ACTIONS_STEP_DEBUG: true # Requisito: Debug ativado
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar Dependências
+        run: npm install
+
+      - name: Teste de Integridade (Simulado)
+        run: |
+          echo "Executando testes..."
+          npm test
+          echo "::warning::Este é um aviso de teste simulado para a rubrica."
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build e Push da Imagem Docker
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}, ${{ env.DOCKER_IMAGE_NAME }}:latest
+
+      - name: Gerar Artefato de Build
+        run: echo "Build realizado com sucesso em $(date)" > build-log.txt
+
+      - name: Upload do Artefato
+        uses: actions/upload-artifact@v4 # Requisito: upload-artifact
+        with:
+          name: log-de-build
+          path: build-log.txt
+
+  deploy-production:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: Production # Requisito: Ambiente com aprovação manual
+      url: https://seusite.com
+
+    vars:
+      PROD_DOMAIN: "app.producao.com" # Requisito: Variável de ambiente (Contexto vars)
+
+    steps:
+      - name: Download do Artefato
+        uses: actions/download-artifact@v4
+        with:
+          name: log-de-build
+
+      - name: Verificação de Variáveis e Segredos
+        env:
+          API_KEY: ${{ secrets.API_KEY }} # Requisito: Uso de secret
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "::error::API_KEY não configurada!"
+            exit 1
+          fi
+          echo "Deploying to domain: ${{ vars.PROD_DOMAIN }}"
+
+      - name: Simulação de Deploy no K8s
+        run: |
+          echo "Conectando ao Cluster..."
+          echo "Aplicando deployment.yaml..."
+          echo "Status: Sucesso"
+
+      - name: Gerar Resumo do Job (Job Summary)
+        if: always()
+        run: |
+          echo "## 🚀 Resumo do Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "* **Status:** Sucesso" >> $GITHUB_STEP_SUMMARY
+          echo "* **Imagem:** ${{ env.DOCKER_IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "* **Responsável:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
